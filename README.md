@@ -1,2 +1,2 @@
 # calculator
-a very power calculator written in python
+a very powerful calculator written in python
