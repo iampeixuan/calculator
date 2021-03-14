@@ -18,8 +18,8 @@ class Problem:
         self.node_node_attrs_tensor = [[[node_node_attrs[attr.name][x][y] for attr in self.model.node_node_attrs] for y in range(self.num_nodes)] for x in range(self.num_nodes)]
         self.vehicle_node_node_attr_tensor = [[[[vehicle_node_node_attrs[attr.name][v][x][y] for attr in self.model.vehicle_node_node_attrs] for y in range(self.num_nodes)] for x in range(self.num_nodes)] for v in range(self.num_vehicles)]
 
-        logging.info(f"num of vehicles in problem: {self.num_vehicles}")
-        logging.info(f"num of nodes in problem: {self.num_nodes}")
+        logging.info(f"{self.__class__.__name__}::num of vehicles in problem: {self.num_vehicles}")
+        logging.info(f"{self.__class__.__name__}::num of nodes in problem: {self.num_nodes}")
 
     def get_global_attr(self, attr):
         return self.global_attrs_tensor[attr.index]
@@ -41,7 +41,7 @@ class Problem:
 
     def update_neighbour(self, neighbourhood_size):
         if self.closeness is not None:
-            logging.info(f"updating neighbourhood with size: {neighbourhood_size}")
+            logging.info(f"{self.__class__.__name__}::updating neighbourhood with size: {neighbourhood_size}")
             self.neighbour_array = []
             for node_idx in range(self.num_nodes):
                 cost_to_neighbour = []
@@ -56,5 +56,5 @@ class Problem:
                 else:
                     self.neighbour_array.append(neighbours[:neighbourhood_size])
         else:
-            logging.error("closeness is not defined for the problem")
+            logging.error(f"{self.__class__.__name__}::closeness is not defined for the problem")
             exit(1)

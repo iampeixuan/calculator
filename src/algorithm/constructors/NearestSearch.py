@@ -14,35 +14,38 @@ class NearestSearch:
         if not self.problem.neighbour_array:
             self.problem.update_neighbour(self.neighbourhood_size)
 
-        # best_solution is to return, solution is to be worked on
-        best_solution = Solution(self.problem)
-        best_solution.eval_solution()
-        solution = best_solution.copy()
-        logging.info(f"initial num of unassigned jobs: {len(best_solution.unassigned_jobs)}")
+        solution = Solution(self.problem)
+        solution.eval_solution()
+        logging.info(f"{self.__class__.__name__}::initial num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
         # create a route for every vehicle and inject unassigned jobs
+        cache = solution.create_cache()
         for vehicle_idx in range(self.problem.num_vehicles):
-            if len(best_solution.unassigned_jobs) == 0:
+            if len(solution.unassigned_jobs) == 0:
                 break
 
-            if create_route(solution, vehicle_idx):
-                best_solution.assigned_by(solution)
+            if create_route(cache, vehicle_idx):
+                solution.accept_cache()
 
                 # try to add the closest neighbour to the end of the route
-                while add_neighbour(solution, solution.get_route(vehicle_idx)):
-                    best_solution.assigned_by(solution)
-                solution.assigned_by(best_solution)
+                while add_neighbour(cache, cache.get_route(vehicle_idx)):
+                    solution.accept_cache()
+                solution.reset_cache()
             else:
-                solution.assigned_by(best_solution)
+                solution.reset_cache()
 
         # evaluate the best solution and return
-        best_solution.eval_solution()
-        logging.info(f"final num of unassigned jobs: {len(best_solution.unassigned_jobs)}")
+        solution.eval_solution()
+        logging.info(f"{self.__class__.__name__}::final num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
-        return best_solution
+        return solution
 
 
 def create_route(solution, vehicle_idx):
+    if not solution:
+        logging.error("solution is undefined")
+        exit(1)
+
     if len(solution.unassigned_jobs) == 0:
         logging.debug("solution has no unassigned jobs")
         return False

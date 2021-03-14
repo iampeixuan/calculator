@@ -1,3 +1,6 @@
+import logging
+
+
 class Route:
     def __init__(self, vehicle_idx=-1, jobs=[]):
         self.vehicle_idx = vehicle_idx
@@ -20,6 +23,21 @@ class Solution:
         self.unassigned_jobs = []
         self.objectives_output = []
         self.is_feasible = True
+        self.cache = None
+
+    def create_cache(self):
+        self.cache = self.copy()
+        return self.cache
+
+    def reset_cache(self):
+        self.cache.assigned_by(self)
+
+    def accept_cache(self):
+        if self.cache:
+            self.assigned_by(self.cache)
+        else:
+            logging.warning(f"{self.__class__.__name__}::cache is not defined, creating a copy of solution as cache")
+            self.create_cache()
 
     def copy(self):
         solution = Solution(self.problem)
