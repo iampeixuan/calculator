@@ -79,7 +79,7 @@ class Solution:
         return self.is_feasible
 
     def eval_objective(self):
-        self.objectives_output = [objective(self) for objective in self.problem.model.objectives]
+        self.objectives_output = [objective.function(self) for objective in self.problem.model.objectives]
 
         return self.objectives_output
 
@@ -119,4 +119,5 @@ class Solution:
         return False
 
     def __repr__(self):
-        return f"is_feasible: {self.is_feasible}, num_unassigned_jobs: {len(self.unassigned_jobs)}, objectives: {self.objectives_output}"
+        names = [objective.name for objective in self.problem.model.objectives]
+        return f"is_feasible: {self.is_feasible}, num_unassigned_jobs: {len(self.unassigned_jobs)}, objectives: {list(zip(names, self.objectives_output))}"

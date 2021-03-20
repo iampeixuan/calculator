@@ -3,7 +3,7 @@ from src.core.Problem import Problem
 from src.algorithm.constructors.NearestSearch import NearestSearch
 from Homberger import Homberger, get_cost
 import logging
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
 def get_problem(file_path):

@@ -29,6 +29,12 @@ class VehicleNodeNodeAttr(Attr):
         Attr.__init__(self, name, index)
 
 
+class Objective:
+    def __init__(self, function, name="Objective"):
+        self.function = function
+        self.name = name
+
+
 class Model:
     def __init__(self):
         self.global_attrs = []

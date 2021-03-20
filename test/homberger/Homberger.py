@@ -1,4 +1,4 @@
-from src.core.Model import Model
+from src.core.Model import Objective, Model
 
 
 # define functions to retrieve the attributes
@@ -136,5 +136,8 @@ class Homberger(Model):
     node_attributes = ["x", "y", "demand", "ready_time", "due_time", "service_time"]
     node_node_attributes = ["cost"]
     vehicle_node_node_attributes = []
-    objectives = [calc_num_unassigned_jobs, calc_num_vehicles, calc_distance, calc_time]
+    objectives = [Objective(calc_num_unassigned_jobs, "num_unassigned_jobs"),
+                  Objective(calc_num_vehicles, "num_vehicles"),
+                  Objective(calc_distance, "distance"),
+                  Objective(calc_time, "time")]
     constraints = [time_window_constraint, vehicle_capacity_constraint]
