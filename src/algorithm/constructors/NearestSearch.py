@@ -1,4 +1,5 @@
-from src.core.Solution import Solution, Route
+from src.core.Solution import Solution
+from src.algorithm.operators.LocalSearch import CreateRoute, InjectAfter
 import random
 import logging
 
@@ -18,19 +19,39 @@ class NearestSearch:
         solution.eval_solution()
         logging.info(f"{self.__class__.__name__}::initial num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
-        # create a route for every vehicle and inject unassigned jobs
+        # initialize the required operators
         cache = solution.create_cache()
+        create_route_op = CreateRoute()
+        create_route_op.set_solution(cache)
+        inject_aft_op = InjectAfter()
+        inject_aft_op.set_solution(cache)
+
+        # create a route for every vehicle and inject a random unassigned jobs
         for vehicle_idx in range(self.problem.num_vehicles):
             if len(solution.unassigned_jobs) == 0:
                 break
 
-            if create_route(cache, vehicle_idx):
+            create_route_op.create(vehicle_idx, [random.choice(cache.unassigned_jobs)])
+            if cache.eval_constraint():
                 solution.accept_cache()
 
-                # try to add the closest neighbour to the end of the route
-                while add_neighbour(cache, cache.get_route(vehicle_idx)):
-                    solution.accept_cache()
-                solution.reset_cache()
+                # try to add the closest neighbour of the last job in the route if it is unassigned
+                job = cache.get_route(vehicle_idx).jobs[-1]
+                neighbour_index = 0
+                while neighbour_index < len(cache.problem.neighbour_array[job]):
+                    neighbour = cache.problem.neighbour_array[job][neighbour_index]
+                    if neighbour in cache.unassigned_jobs:
+                        inject_aft_op.move(job, neighbour)
+                        if cache.eval_constraint():
+                            solution.accept_cache()
+                            job = neighbour
+                            neighbour_index = 0
+                        else:
+                            solution.reset_cache()
+                            neighbour_index += 1
+                            logging.debug(f"{self.__class__.__name__}::add neighbour {neighbour} failed, recovering to last solution")
+                    else:
+                        neighbour_index += 1
             else:
                 solution.reset_cache()
 
@@ -39,43 +60,3 @@ class NearestSearch:
         logging.info(f"{self.__class__.__name__}::final num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
         return solution
-
-
-def create_route(solution, vehicle_idx):
-    if not solution:
-        logging.error("solution is undefined")
-        exit(1)
-
-    if len(solution.unassigned_jobs) == 0:
-        logging.debug("solution has no unassigned jobs")
-        return False
-
-    job_idx = random.choice(solution.unassigned_jobs)
-    route = Route(vehicle_idx, [job_idx])
-    logging.debug(f"creating a route with vehicle_idx: {vehicle_idx}, job_idx: {job_idx}")
-
-    solution.routes.append(route)
-    if solution.eval_constraint():
-        solution.eval_unassigned_jobs()
-        logging.debug("route created successfully")
-        return True
-    else:
-        route.clear_jobs()
-        logging.debug("failed to create route")
-        return False
-
-
-def add_neighbour(solution, route):
-    job_idx = route.jobs[-1]
-    for i in range(len(solution.problem.neighbour_array[job_idx])):
-        neighbour_idx = solution.problem.neighbour_array[job_idx][i]
-        if neighbour_idx in solution.unassigned_jobs:
-            route.jobs.append(neighbour_idx)
-            if solution.eval_constraint():
-                solution.eval_unassigned_jobs()
-                logging.debug(f"add {neighbour_idx} after {job_idx} successfully")
-                return True
-            else:
-                route.jobs.pop()
-
-    return False
