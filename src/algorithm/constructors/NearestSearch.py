@@ -1,5 +1,5 @@
 from src.core.Solution import Solution
-from src.algorithm.operators.LocalSearch import CreateRoute, InjectBefore, InjectAfter
+from src.algorithm.operators.LocalSearchOperator import CreateRoute, InjectBefore, InjectAfter
 import random
 import logging
 
