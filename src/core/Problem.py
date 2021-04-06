@@ -18,8 +18,9 @@ class Problem:
         self.node_node_attrs_tensor = [[[node_node_attrs[attr.name][x][y] for attr in self.model.node_node_attrs] for y in range(self.num_nodes)] for x in range(self.num_nodes)]
         self.vehicle_node_node_attr_tensor = [[[[vehicle_node_node_attrs[attr.name][v][x][y] for attr in self.model.vehicle_node_node_attrs] for y in range(self.num_nodes)] for x in range(self.num_nodes)] for v in range(self.num_vehicles)]
 
-        logging.info(f"{self.__class__.__name__}::num of vehicles in problem: {self.num_vehicles}")
-        logging.info(f"{self.__class__.__name__}::num of nodes in problem: {self.num_nodes}")
+        logging.info(f"{self.__class__.__name__}::num of vehicles: {self.num_vehicles}")
+        logging.info(f"{self.__class__.__name__}::num of depots: {len(self.depot_index_list)}")
+        logging.info(f"{self.__class__.__name__}::num of jobs: {len(self.job_indexes)}")
 
     def get_global_attr(self, attr):
         return self.global_attrs_tensor[attr.index]
@@ -50,7 +51,7 @@ class Problem:
                         cost_to_neighbour.append((self.closeness(self, node_idx, neighbour_idx), neighbour_idx))
 
                 cost_to_neighbour.sort(key=lambda x: x[0])
-                neighbours = [cost[1] for cost in cost_to_neighbour]
+                neighbours = [cost[1] for cost in cost_to_neighbour if cost[1] not in self.depot_index_list]
                 if neighbourhood_size >= len(neighbours):
                     self.neighbour_array.append(neighbours)
                 else:

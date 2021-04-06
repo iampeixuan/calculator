@@ -58,6 +58,7 @@ def calc_distance(solution):
         depot = get_depot_index(solution.problem, route.vehicle_idx)
         route_distance = 0.0
         prev_job = depot
+        job = depot
         for job in route.jobs:
             route_distance += get_cost(solution.problem, prev_job, job)
             prev_job = job
@@ -73,6 +74,7 @@ def calc_time(solution):
         depot = get_depot_index(solution.problem, route.vehicle_idx)
         route_time = 0.0
         prev_job = depot
+        job = depot
         leave_time = get_start_time(solution.problem, route.vehicle_idx)
         for job in route.jobs:
             cost = get_cost(solution.problem, prev_job, job)
@@ -95,6 +97,7 @@ def time_window_constraint(solution):
     for route in solution.routes:
         depot = get_depot_index(solution.problem, route.vehicle_idx)
         prev_job = depot
+        job = depot
         leave_time = get_start_time(solution.problem, route.vehicle_idx)
         for job in route.jobs:
             cost = get_cost(solution.problem, prev_job, job)
@@ -111,6 +114,7 @@ def time_window_constraint(solution):
                 return False
 
         end_time = leave_time + get_cost(solution.problem, job, depot)
+
         if end_time > get_end_time(solution.problem, route.vehicle_idx):
             return False
 

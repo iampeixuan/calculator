@@ -1,6 +1,7 @@
 import math
 from src.core.Problem import Problem
 from src.algorithm.constructors.NearestSearch import NearestSearch
+from src.algorithm.metaheuristics.Ils import Ils
 from Homberger import Homberger, get_cost
 import logging
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -63,8 +64,12 @@ if __name__ == "__main__":
     problem.set_closeness(get_cost)
 
     # run algorithm and generate solution
-    nearest_search = NearestSearch(problem, neighbourhood_size=100, seed=0)
+    nearest_search = NearestSearch(problem, neighbourhood_size=50, seed=0)
     solution = nearest_search.solve()
+
+    ils = Ils(problem, max_iter=10, max_time=3, log_freq=1, neighbourhood_size=50, seed=0)
+    ils.set_initial_solution(solution)
+    solution = ils.solve()
 
     print(solution)
 

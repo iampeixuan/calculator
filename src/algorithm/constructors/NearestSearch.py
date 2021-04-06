@@ -20,19 +20,19 @@ class NearestSearch:
         logging.info(f"{self.__class__.__name__}::initial num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
         # initialize the required operators
-        cache = solution.create_cache()
+        cache = solution.copy()
         create_route_op = CreateRoute(cache)
         inject_bef_op = InjectBefore(cache)
         inject_aft_op = InjectAfter(cache)
 
         # create a route for every vehicle and inject a random unassigned jobs
         for vehicle_idx in range(self.problem.num_vehicles):
-            if len(solution.unassigned_jobs) == 0:
+            if len(cache.unassigned_jobs) == 0:
                 break
 
-            create_route_op.create(vehicle_idx, [random.choice(cache.unassigned_jobs)])
-            if cache.eval_constraint():
-                solution.accept_cache()
+            create_route_op.move(vehicle_idx, random.choice(cache.unassigned_jobs))
+            if create_route_op.check_feasible():
+                solution.assigned_by(cache)
 
                 # iteratively add the neighbour of the last job in the route if it is unassigned
                 job = cache.get_route(vehicle_idx).jobs[-1]
@@ -41,25 +41,24 @@ class NearestSearch:
                     neighbour = cache.problem.neighbour_array[job][neighbour_index]
                     if neighbour in cache.unassigned_jobs:
                         inject_aft_op.move(job, neighbour)
-                        if cache.eval_constraint():
-                            solution.accept_cache()
+                        if inject_aft_op.check_feasible():
+                            solution.assigned_by(cache)
                             job = neighbour
                             neighbour_index = 0
                         else:
-                            solution.reset_cache()
+                            inject_aft_op.recover()
                             neighbour_index += 1
-                            logging.debug(f"{self.__class__.__name__}::failed to inject neighbour {neighbour}, recovering to last solution")
+                            logging.debug(f"{self.__class__.__name__}::failed to inject neighbour {neighbour}, recovering...")
                     else:
                         neighbour_index += 1
             else:
-                solution.reset_cache()
+                create_route_op.recover()
 
         # iteratively inject unassigned jobs if there is any
-        solution.eval_unassigned_jobs()
-        prev_num_unassigned = len(solution.unassigned_jobs)
-        solution.reset_cache()
+        cache.eval_solution()
+        prev_num_unassigned = len(cache.unassigned_jobs)
         while len(cache.unassigned_jobs) > 0:
-            logging.debug(f"{self.__class__.__name__}::trying to inject {len(cache.unassigned_jobs)} unassigned jobs: {len(cache.unassigned_jobs)}")
+            logging.debug(f"{self.__class__.__name__}::trying to inject {len(cache.unassigned_jobs)} unassigned jobs")
 
             for unassigned in cache.unassigned_jobs:
                 inject_successful = False
@@ -70,20 +69,20 @@ class NearestSearch:
                         continue
                     for op in [inject_bef_op, inject_aft_op]:
                         op.move(neighbour, unassigned)
-                        if cache.eval_constraint():
-                            solution.accept_cache()
+                        if op.check_feasible():
+                            solution.assigned_by(cache)
                             inject_successful = True
                             break
                         else:
-                            solution.reset_cache()
-                            logging.debug(f"{self.__class__.__name__}::failed to inject neighbour {neighbour}, recovering to last solution")
+                            op.recover()
+                            logging.debug(f"{self.__class__.__name__}::failed to inject neighbour {neighbour}, recovering...")
 
             if len(cache.unassigned_jobs) == prev_num_unassigned:
                 break
 
         # final evaluation
+        solution.assigned_by(cache)
         solution.eval_solution()
-        if len(solution.unassigned_jobs) > 0:
-            logging.info(f"{self.__class__.__name__}::final num of unassigned jobs: {len(solution.unassigned_jobs)}")
+        logging.info(f"{self.__class__.__name__}::final num of unassigned jobs: {len(solution.unassigned_jobs)}")
 
         return solution

@@ -23,21 +23,6 @@ class Solution:
         self.unassigned_jobs = []
         self.objectives_output = []
         self.is_feasible = True
-        self.cache = None
-
-    def create_cache(self):
-        self.cache = self.copy()
-        return self.cache
-
-    def reset_cache(self):
-        self.cache.assigned_by(self)
-
-    def accept_cache(self):
-        if self.cache:
-            self.assigned_by(self.cache)
-        else:
-            logging.warning(f"{self.__class__.__name__}::cache is not defined, creating a copy of solution as cache")
-            self.create_cache()
 
     def copy(self):
         solution = Solution(self.problem)
@@ -104,17 +89,13 @@ class Solution:
 
         return True
 
-    def __lt__(self, other):
+    def better_than(self, other):
         for i in range(len(self.objectives_output)):
-            if self.objectives_output[i] < other.objectives_output[i]:
+            diff = self.objectives_output[i] - other.objectives_output[i]
+            if diff < 0:
                 return True
-
-        return False
-
-    def __gt__(self, other):
-        for i in range(len(self.objectives_output)):
-            if self.objectives_output[i] > other.objectives_output[i]:
-                return True
+            elif diff > 0:
+                return False
 
         return False
 
