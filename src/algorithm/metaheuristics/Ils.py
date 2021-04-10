@@ -17,6 +17,7 @@ class Ils:
         self.init_solution = None
         self.solution = None
         self.best_solution = None
+        self.uphill_best_objectives = None
 
     def set_initial_solution(self, solution):
         self.init_solution = solution
@@ -35,6 +36,7 @@ class Ils:
 
         self.solution.eval_solution()
         self.best_solution = self.solution.copy()
+        self.uphill_best_objectives = self.solution.copy_objectives()
         cache = self.solution.copy()
         logging.info(f"{self.__class__.__name__}::initial solution: {self.solution}")
 
@@ -98,5 +100,12 @@ class Ils:
                 if operator.solution.better_than(self.solution):
                     self.solution.assigned_by(operator.solution)
                     return
-            else:
-                operator.recover()
+                elif uphill and operator.solution.better_than(self.solution, tolerance=0.2):
+                    if uphill_index == -1 or operator.solution.better_than(other=None, objectives=self.uphill_best_objectives):
+                        self.uphill_best_objectives = operator.solution.copy_objectives()
+                        uphill_index = neighbour
+            operator.recover()
+
+        if uphill and uphill_index != -1:
+            operator.move(job, uphill_index)
+            self.solution.assigned_by(operator.solution)

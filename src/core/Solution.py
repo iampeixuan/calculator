@@ -39,6 +39,9 @@ class Solution:
         self.objectives_output = [output for output in other.objectives_output]
         self.is_feasible = other.is_feasible
 
+    def copy_objectives(self):
+        return [i for i in self.objectives_output]
+
     def get_route(self, vehicle_idx):
         for route in self.routes:
             if route.vehicle_idx == vehicle_idx:
@@ -89,12 +92,15 @@ class Solution:
 
         return True
 
-    def better_than(self, other):
+    def better_than(self, other, objectives=None, tolerance=0.0):
+        if objectives is None:
+            objectives = other.objectives_output
+
         for i in range(len(self.objectives_output)):
-            diff = self.objectives_output[i] - other.objectives_output[i]
-            if diff < 0:
+            diff = self.objectives_output[i] - objectives[i]
+            if diff < tolerance * self.objectives_output[i]:
                 return True
-            elif diff > 0:
+            elif diff > tolerance * self.objectives_output[i]:
                 return False
 
         return False
